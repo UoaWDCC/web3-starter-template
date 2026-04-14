@@ -1,28 +1,65 @@
+/**
+ * WORKSHOP: Wallet Connector Component
+ * 
+ * This component displays the wallet connection UI and wallet information.
+ * It uses hooks from Reown AppKit and Wagmi to:
+ * - Check if a wallet is connected
+ * - Get the connected wallet address
+ * - Get the wallet balance
+ * - Get network information
+ * - Open the connection/account modal
+ * 
+ * Key hooks:
+ * - useAppKit(): Opens the wallet modal { open }
+ * - useAppKitAccount(): Gets account info { address, isConnected, status }
+ * - useAppKitNetwork(): Gets network info { caipNetwork, chainId }
+ * - useBalance(): Gets the wallet balance (from wagmi)
+ */
+
 "use client";
 
-import { useAppKit, useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { useBalance } from "wagmi";
+// STEP 1: Import the necessary hooks
+// TODO: Import these hooks:
+// - useAppKit, useAppKitAccount, useAppKitNetwork from "@reown/appkit/react"
+// - useBalance from "wagmi"
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Copy, ExternalLink, LogOut, ChevronDown } from "lucide-react";
 
 export function WalletConnector() {
-  const { open } = useAppKit();
-  const { address, isConnected, caipAddress, status } = useAppKitAccount();
-  const { caipNetwork, caipNetworkId, chainId } = useAppKitNetwork();
+  // STEP 2: Use the AppKit hooks to get wallet state
+  // TODO: Destructure the following from the hooks:
+  // const { open } = useAppKit();
+  // const { address, isConnected, status } = useAppKitAccount();
+  // const { caipNetwork, chainId } = useAppKitNetwork();
 
-  const { data: balance } = useBalance({
-    address: address as `0x${string}` | undefined,
-  });
+  // Placeholder values - replace with actual hook values
+  const open = () => console.log("TODO: Implement useAppKit hook");
+  const address = undefined;
+  const isConnected = false;
+  const status = "disconnected";
+  const caipNetwork = undefined;
+  const chainId = undefined;
 
+  // STEP 3: Use the useBalance hook from wagmi to get the wallet balance
+  // TODO: Call useBalance with the connected address
+  // const { data: balance } = useBalance({
+  //   address: address as `0x${string}` | undefined,
+  // });
+  const balance = undefined;
+
+  // Helper function to truncate address for display
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
+  // Helper function to copy address to clipboard
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
   };
 
+  // Helper function to open block explorer
   const openExplorer = () => {
     if (address && caipNetwork?.blockExplorers?.default?.url) {
       window.open(
@@ -31,6 +68,10 @@ export function WalletConnector() {
       );
     }
   };
+
+  // STEP 4: Render different UI based on connection state
+  // When not connected: Show a "Connect Wallet" button
+  // When connected: Show wallet info (address, balance, network)
 
   if (!isConnected) {
     return (
@@ -45,8 +86,13 @@ export function WalletConnector() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {/* TODO: Add onClick handler to open the wallet modal */}
+          {/* Hint: Call open() from useAppKit */}
           <Button
-            onClick={() => open()}
+            onClick={() => {
+              // TODO: Call open() to show the wallet connection modal
+              open();
+            }}
             size="lg"
             className="w-full gap-2"
           >
@@ -61,6 +107,7 @@ export function WalletConnector() {
     );
   }
 
+  // Connected state - show wallet information
   return (
     <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
@@ -72,6 +119,7 @@ export function WalletConnector() {
             <div>
               <CardTitle className="text-lg">Connected</CardTitle>
               <CardDescription className="text-xs">
+                {/* TODO: Display the network name */}
                 {caipNetwork?.name || "Unknown Network"}
               </CardDescription>
             </div>
@@ -79,7 +127,10 @@ export function WalletConnector() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => open({ view: "Networks" })}
+            onClick={() => {
+              // TODO: Open the network switcher
+              // Hint: open({ view: "Networks" })
+            }}
             className="gap-1"
           >
             Switch
@@ -95,6 +146,7 @@ export function WalletConnector() {
           </p>
           <div className="flex items-center justify-between">
             <code className="text-sm font-mono">
+              {/* TODO: Display truncated address */}
               {address ? truncateAddress(address) : ""}
             </code>
             <div className="flex gap-1">
@@ -126,6 +178,8 @@ export function WalletConnector() {
             Balance
           </p>
           <p className="text-2xl font-bold">
+            {/* TODO: Display formatted balance */}
+            {/* Hint: balance?.formatted and balance?.symbol */}
             {balance
               ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}`
               : "Loading..."}
@@ -166,7 +220,10 @@ export function WalletConnector() {
           <Button
             variant="outline"
             className="flex-1 gap-2"
-            onClick={() => open({ view: "Account" })}
+            onClick={() => {
+              // TODO: Open account view
+              // Hint: open({ view: "Account" })
+            }}
           >
             <Wallet className="h-4 w-4" />
             Account
@@ -174,7 +231,10 @@ export function WalletConnector() {
           <Button
             variant="destructive"
             className="flex-1 gap-2"
-            onClick={() => open({ view: "Account" })}
+            onClick={() => {
+              // TODO: Open account view to disconnect
+              // Hint: open({ view: "Account" })
+            }}
           >
             <LogOut className="h-4 w-4" />
             Disconnect

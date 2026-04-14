@@ -1,3 +1,15 @@
+/**
+ * WORKSHOP: Wallet Page
+ * 
+ * This is the page where users connect their wallet.
+ * It demonstrates how to use the Web3Provider with Next.js App Router.
+ * 
+ * Key concepts:
+ * - Server Components vs Client Components
+ * - Passing cookies from server to client for SSR support
+ * - Using the Web3Provider to wrap client components
+ */
+
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,9 +22,17 @@ export const metadata = {
   description: "Connect your MetaMask or other Web3 wallet to get started",
 };
 
+// This is a Server Component by default in Next.js App Router
 export default async function WalletPage() {
+  // STEP 1: Get cookies from the request headers
+  // This is needed for SSR support - it allows us to restore the wallet
+  // connection state on page load
   const headersList = await headers();
   const cookies = headersList.get("cookie");
+
+  // STEP 2: Wrap the page content with Web3Provider
+  // Pass the cookies to the provider for SSR hydration
+  // TODO: Make sure Web3Provider is properly implemented in components/web3-provider.tsx
 
   return (
     <Web3Provider cookies={cookies}>
@@ -38,6 +58,8 @@ export default async function WalletPage() {
               </p>
             </div>
 
+            {/* STEP 3: The WalletConnector component handles the UI */}
+            {/* Make sure it's properly implemented in components/wallet-connector.tsx */}
             <WalletConnector />
 
             <div className="mt-12 rounded-lg border border-border bg-card p-6">
