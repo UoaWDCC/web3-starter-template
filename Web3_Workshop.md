@@ -3,19 +3,43 @@
 **Stack:** Next.js · wagmi · Reown AppKit (WalletConnect) · TanStack Query
 
 ---
-## Pre-Workshop Setup 
+
+## Pre-Workshop Setup
 - [ ] Node.js 18+ installed
 - [ ] Git installed
 - [ ] MetaMask browser extension installed (https://metamask.io)
 - [ ] A code editor (VS Code recommended)
 - [ ] Create a free WalletConnect Project ID at https://walletconnect.network/
+
+---
+
+
+## Initial setup
+
+1. Clone this repo to get started:
+
+```bash
+git clone https://github.com/UoaWDCC/web3-starter-template.git
+cd web3-starter-template
+```
+2. Switch to the starter branch
+
+```bash
+git switch starter-branch
+```
+
+3. Install the necessarry dependencies
+```bash
+npm install
+```
+---
 ## Overview
 
 You'll be integrating a wallet connector into a Next.js app using three files that each play a distinct role. By the end of this workshop you'll have a working connect/disconnect flow supporting MetaMask, WalletConnect, and Coinbase Wallet across multiple EVM chains.
 
 ---
 
-## Part 1 — Architecture
+## Part 1 — Architecture 
 
 The three files form a clear dependency chain. Think of it like a restaurant: `wagmi-config.ts` is the kitchen setup, `web3-provider.tsx` is the front-of-house staff, and `wallet-connector.tsx` is what the customer actually sees and touches.
 
@@ -34,27 +58,28 @@ wagmi-config.ts
            Renders the connect card or connected card
            depending on wallet state.
 ```
-*Remote Procedure Call (RPC) is a communication protocol that allows a computer program to execute code on a separate server or machine as if it were a local function call
+
+> **RPC (Remote Procedure Call):** a communication protocol that lets your app talk to a blockchain node — fetching balances, sending transactions, etc. — as if it were a local function call.
 
 ### File roles at a glance
 
 | File | Role | You will... |
 |---|---|---|
-| `wagmi-config.ts` | Foundation — networks & transports | Add chains, swap RPC URLs |
-| `web3-provider.tsx` | Context layer — providers & AppKit init | Set app metadata |
-| `wallet-connector.tsx` | UI component — hooks & rendering | Add features and UI |
+| `wagmi-config.ts` | Foundation — networks & transports | Import chains, fill in the networks array and transports |
+| `web3-provider.tsx` | Context layer — providers & AppKit init | Import config values, complete createAppKit, wrap children in providers |
+| `wallet-connector.tsx` | UI component — hooks & rendering | Fix missing hook values, wire up the connect button |
 
 ---
 
-## Part 2 — Libraries
+## Part 2 — Libraries 
 
 ### Why these four packages?
 
-**`wagmi ("We're All Gonna Make It")`**  
-React hooks for Ethereum. Wraps viem and gives you `useBalance`, `useAccount`, `useSignMessage`, and more. You only need 2–3 hooks to ship a working integration.
+**`wagmi` ("We're All Gonna Make It")**  
+React hooks for Ethereum. Wraps **viem** (a TypeScript interface for Ethereum) and gives you `useBalance`, `useAccount`, `useSignMessage`, and more. You only need 2–3 hooks for a working integration.
 
 **`@reown/appkit`**  
-The WalletConnect modal UI. Handles MetaMask, WalletConnect QR, and Coinbase Wallet — all in one drop-in modal. Requires a free project ID from [WalletConnect](https://walletconnect.network/).
+The WalletConnect modal UI. Handles MetaMask, WalletConnect QR, and Coinbase Wallet — all in one drop-in modal. Requires a free project ID from [Wallet Connect](https://walletconnect.network/).
 
 **`@tanstack/react-query`**  
 Async state management. wagmi uses it internally for caching RPC calls. You don't interact with it directly — you just need `QueryClientProvider` in the tree.
@@ -71,161 +96,126 @@ Framework-agnostic core used by the WagmiAdapter. Provides `createStorage` and `
 | `useAppKitNetwork()` | `caipNetwork`, `chainId` | Display the active chain name and explorer URL |
 | `useBalance({ address })` | `{ formatted, symbol, value }` | Show the user's native token balance |
 
-> **Tip:** `open()` accepts an optional `view` parameter:  
-> - `open({ view: "Networks" })` → opens the network switcher  
+> **Tip:** `open()` accepts an optional `view` parameter:
+> - `open({ view: "Networks" })` → opens the network switcher
 > - `open({ view: "Account" })` → opens account details (with disconnect)
 
 ---
+## Part 3 — Files Walkthrough 
 
-## Part 3 — File Walkthrough
+Let's walk through and see what those 3 files have!
+
+---
+
+## Part 4 — Exercise 
+
+The starter files have several intentional gaps marked with `TODO` comments. Work through them in file order — each fix unlocks the next.
+
+---
 
 ### `wagmi-config.ts`
 
+**TODO 1 — Import your networks**
+
+The import statement is currently empty:
+
 ```ts
-import { cookieStorage, createStorage, http } from "@wagmi/core";
-import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-// ① Each import is just a typed config object — not a live connection
-import { mainnet, arbitrum, polygon, optimism, base } from "@reown/appkit/networks";
-
-// ② Your WalletConnect project ID — stored in .env.local
-export const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
-
-// ③ The networks array controls which chains appear in the modal.
-//    Order matters — the first item is the default chain.
-export const networks = [mainnet, arbitrum, polygon, optimism, base];
-
-// ④ WagmiAdapter wires everything together.
-//    ssr: true enables cookie-based state so there's no hydration mismatch.
-//    transports: one http() per chain — swap for Alchemy/Infura URLs in prod.
-export const wagmiAdapter = new WagmiAdapter({
-  storage: createStorage({ storage: cookieStorage }),
-  ssr: true,
-  projectId,
-  networks,
-  transports: {
-    [mainnet.id]: http(),   // public RPC — rate-limited, fine for dev
-    [arbitrum.id]: http(),
-    [polygon.id]: http(),
-    [optimism.id]: http(),
-    [base.id]: http(),
-  },
-});
-
-export const config = wagmiAdapter.wagmiConfig;
+import {} from "@reown/appkit/networks";
 ```
 
-**Things to configure here:**
-- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` in your `.env.local`
-- The `networks` array (add or remove chains)
-- The `transports` object (swap public RPCs for Alchemy/Infura in production)
+Add the chains you want to support in the import!
+
+
+**TODO 2 — Populate the networks array and transports**
+
+Fill in the `networks` array and add one `http()` transport per chain:
+
+e.g.
+
+```ts
+export const networks = [thisnet, thatnet, thosenets, these];
+
+transports: {
+  [thisnet.id]: http(),
+  ...
+},
+```
 
 ---
 
 ### `web3-provider.tsx`
 
-```tsx
-// ① createAppKit is called ONCE at module level, NOT inside a component.
-//    If you put it inside a component, it re-initialises on every render.
-import { createAppKit } from "@reown/appkit/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
-import { wagmiAdapter, projectId, networks } from "@/lib/wagmi-config";
+**TODO 3 — Import from wagmi-config**
 
-// ② One QueryClient for the whole app — don't recreate inside components
-const queryClient = new QueryClient();
+The file references `wagmiAdapter`, `projectId`, and `networks` but never imports them. Import wagmi-config and the references.
 
-// ③ This metadata is displayed inside the WalletConnect modal.
-//    In production, `url` must match your domain in the Reown dashboard.
-const metadata = {
-  name: "Wallet Connector",
-  description: "Connect your wallet using WalletConnect",
-  url: typeof window !== "undefined" ? window.location.origin : "https://example.com",
-  icons: ["/icon.svg"],
-};
 
-createAppKit({
-  adapters: [wagmiAdapter],
-  projectId,
-  networks,
-  defaultNetwork: networks[0],
-  metadata,
-  features: { analytics: true },
-});
 
-// ④ The cookies prop comes from your Next.js root layout:
-//    const cookies = headers().get("cookie")
-//    It seeds client state so there's no flash of "disconnected" on reload.
-export function Web3Provider({ children, cookies }) {
-  const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config, cookies);
-  return (
-    <WagmiProvider config={wagmiAdapter.wagmiConfig as Config} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiProvider>
-  );
-}
-```
+**TODO 4 — Complete createAppKit**
 
-**Things to configure here:**
-- The `metadata` object (name, description, url, icons)
-- `features` — toggle analytics, email login, etc.
+The `createAppKit` call is currently empty. Fill it in so that the wallet application works!
+
+*Hint: look at the provided docs at the bottom.
+
+
+**TODO 5 — Wrap children in both providers**
+
+The return statement is missing `WagmiProvider`and its necessarry configurations. The correct nesting is `WagmiProvider` → `QueryClientProvider` → `children`:
 
 ---
 
 ### `wallet-connector.tsx`
 
-```tsx
-// ① Pull in all three AppKit hooks at the top of the component
-const { open } = useAppKit();
-const { address, isConnected, status } = useAppKitAccount();
-const { caipNetwork, chainId } = useAppKitNetwork();
+**TODO 6 — Destructure isConnected from useAppKitAccount**
 
-// ② useBalance auto-fetches on the active chain.
-//    Cast address as `0x${string}` — wagmi requires this branded type.
-const { data: balance } = useBalance({
-  address: address as `0x${string}` | undefined,
-});
+The current line is missing `isConnected`, which means the conditional render below it will always fail:
 
-// ③ The whole component is a simple conditional render.
-//    !isConnected → show the "Connect Wallet" card
-//     isConnected → show the connected state card
-if (!isConnected) {
-  return <ConnectCard onConnect={() => open()} />;
-}
-
-// ④ Useful values to display in the connected state:
-//    caipNetwork.name          → "Ethereum", "Arbitrum One", etc.
-//    caipNetwork.blockExplorers.default.url  → etherscan URL
-//    balance.formatted         → "1.2345"
-//    balance.symbol            → "ETH"
-//    chainId                   → 1, 42161, etc.
+```ts
+const { address, status } = useAppKitAccount();
 ```
 
-**Things you'll add here:**
-- Toast feedback on copy
-- Chain-gated UI sections
-- Additional balance or token displays
+**TODO 7 — Wire up the connect button**
+
+The connect button has no `onClick`. Add it so clicking opens the wallet modal:
+
+```tsx
+<Button
+  size="lg"
+  className="w-full gap-2"
+>
+```
 
 ---
 
-## Part 4 — Exercise
+### Checkpoint
 
-Complete the tasks below in order. Ask for help if you get stuck!
+Once all TODOs are complete:
 
-### Task 1 — Wire up your project ID
-1. Create `.env.local` in the project root
-2. Add `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_id_here`
-3. Get a free project ID at [WalletConnect](https://walletconnect.network/)
-4. Run `npm run dev` and confirm no environment error in the console
+1. Create `.env.local` in the project root and add your project ID:
+   ```
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_id_here
+   ```
+2. Run `npm run dev`
+3. Open the app and click **Connect Wallet**
+4. Connect using MetaMask — you should see your address, balance, and network
 
-### Task 2 — Add a testnet
-In `wagmi-config.ts`, add `sepolia` to the networks array:
+---
+
+## Part 5 — Extra Exercises
+
+These are optional extensions to try if you finish early or want to explore further after the workshop.
+
+---
+
+### Extra 1 — Add a testnet
+
+Add `sepolia` to your networks so you can test without using real funds:
 
 ```ts
 import { mainnet, arbitrum, polygon, optimism, base, sepolia } from "@reown/appkit/networks";
 
 export const networks = [mainnet, arbitrum, polygon, optimism, base, sepolia];
 
-// Also add to transports:
 transports: {
   // ...existing entries
   [sepolia.id]: http(),
@@ -234,8 +224,11 @@ transports: {
 
 Open the network switcher in the modal and confirm Sepolia appears.
 
-### Task 3 — Add a copy toast
-In `wallet-connector.tsx`, give users feedback when they copy their address:
+---
+
+### Extra 2 — Add a copy toast
+
+Give users visual feedback when they copy their address. In `wallet-connector.tsx`:
 
 ```tsx
 const [copied, setCopied] = useState(false);
@@ -250,8 +243,11 @@ const copyToClipboard = async (text: string) => {
 {copied && <span className="text-xs text-emerald-500">Copied!</span>}
 ```
 
-### Task 4 — Gate a UI section
-Below the balance card, add a placeholder panel that only renders when a wallet is connected:
+---
+
+### Extra 3 — Gate a UI section behind wallet connection
+
+Add a placeholder section that only renders when a wallet is connected:
 
 ```tsx
 {isConnected && (
@@ -262,8 +258,11 @@ Below the balance card, add a placeholder panel that only renders when a wallet 
 )}
 ```
 
-### Task 5 ★ — Stretch goal: private RPC
-Replace the public `http()` transport for mainnet with a provider URL:
+---
+
+### Extra 4 — Use a private RPC
+
+Replace the public `http()` transport for mainnet with a provider URL. Public RPCs are rate-limited — a private one is more reliable for production:
 
 ```ts
 // In .env.local:
@@ -275,63 +274,30 @@ transports: {
 }
 ```
 
+Free tiers are available at [Alchemy](https://www.alchemy.com) and [Infura](https://infura.io).
+
 ---
 
-## Part 5 — Extension Ideas 
+### Extra 5 — Redesign the wallet card with AI
 
-### ERC-20 token balances
-Use `useBalance` with a `token` param to fetch any ERC-20 balance:
+The current `wallet-connector.tsx` works, but the design is basic. Use an AI coding tool (Claude, ChatGPT, GitHub Copilot, etc.) to make it look more polished — and practise writing effective prompts while you're at it.
 
-```ts
-const { data: usdcBalance } = useBalance({
-  address,
-  token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC on mainnet
-});
-```
+**Starter prompt:**
 
-Map over a list of contract addresses to build a portfolio view.
+> "Here is my wallet connector React component. Redesign the connected wallet card to look more modern and visually interesting. Keep all the existing functionality (address display, copy button, block explorer link, balance, network info, disconnect button) but improve the layout, typography, and visual hierarchy. Use only Tailwind CSS classes. The component uses shadcn/ui Card, Button primitives."
 
-### Chain-gated content
-Check the active chain and warn users if they're on the wrong network:
+**Ideas to ask for:**
+- A dark glassmorphism card style
+- A coloured dot or badge that changes per network (green for mainnet, yellow for testnets)
+- An identicon or blockie avatar generated from the wallet address
+- An animated balance that counts up on load
+- A more prominent disconnect affordance
 
-```tsx
-import { mainnet } from "@reown/appkit/networks";
-
-{chainId !== mainnet.id && (
-  <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600">
-    Please switch to Ethereum Mainnet to use this feature.
-  </div>
-)}
-```
-
-### Sign a message
-Let users prove wallet ownership without sending a transaction:
-
-```tsx
-import { useSignMessage } from "wagmi";
-
-const { signMessage, data: signature } = useSignMessage();
-
-<button onClick={() => signMessage({ message: "Verify my wallet" })}>
-  Sign to verify
-</button>
-{signature && <p className="font-mono text-xs break-all">{signature}</p>}
-```
-
-### Send ETH
-Add a simple transfer form using `useSendTransaction`:
-
-```tsx
-import { useSendTransaction } from "wagmi";
-import { parseEther } from "viem";
-
-const { sendTransaction } = useSendTransaction();
-
-sendTransaction({
-  to: "0xRecipientAddress",
-  value: parseEther("0.001"),
-});
-```
+**Discuss with the group afterward:**
+- What wording in your prompt produced the best result?
+- What did the AI get wrong that you had to correct manually?
+- Did you need multiple rounds of prompting, or did one shot work?
+- How would you make it look good on mobile?
 
 ---
 
@@ -340,11 +306,14 @@ sendTransaction({
 **`createAppKit` inside a component**  
 Always call it at module level. If it's inside a React component, it re-initialises on every render and breaks modal state.
 
-**Missing `QueryClientProvider`**  
-wagmi hooks will throw if `QueryClientProvider` isn't an ancestor. Make sure `Web3Provider` wraps your entire app in the root layout.
+**Missing `isConnected` in the destructure**  
+If the connected card never appears after connecting, check that `isConnected` is destructured from `useAppKitAccount()`. Without it, `!isConnected` evaluates to `true` forever.
+
+**Wrong provider nesting order**  
+The correct nesting is `WagmiProvider` → `QueryClientProvider` → your components. Swapping the order or omitting either will cause hook errors.
 
 **Address type errors**  
-wagmi's `useBalance` expects `0x${string}`, not plain `string`. Always cast: `address as \`0x${string}\``.
+wagmi's `useBalance` expects `` 0x${string} ``, not plain `string`. Always cast: `` address as `0x${string}` ``.
 
 **Hydration mismatch**  
 This is why we use `cookieStorage` and `ssr: true`. If you see hydration errors, check that `cookies` is being passed correctly from your root layout into `Web3Provider`.
@@ -356,7 +325,8 @@ The default `http()` transport uses public endpoints that are heavily rate-limit
 
 ## Resources
 
-- [WalletConnect Docs](https://docs.walletconnect.network/)
+- [Reown AppKit docs](https://docs.reown.com/appkit/overview)
+- [Wallet Connect docs](https://docs.walletconnect.network/)
 - [wagmi docs](https://wagmi.sh)
 - [viem docs](https://viem.sh)
 - [Get a WalletConnect project ID](https://walletconnect.network/)

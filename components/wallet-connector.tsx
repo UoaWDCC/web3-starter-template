@@ -7,24 +7,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Wallet, Copy, ExternalLink, LogOut, ChevronDown } from "lucide-react";
 
 export function WalletConnector() {
+
+  // ① Pull in the AppKit hooks needed for wallet interaction.
+  // - useAppKit → provides functions like `open()` to control the wallet modal
+  // - useAppKitAccount → returns wallet address and connection state
+  // - useAppKitNetwork → returns the currently connected network
   const { open } = useAppKit();
 
-  //TODO: Use the appropriate hooks from appKit to get the account, network, and connection status
+  // TODO: Use the appropriate hooks from AppKit to get the account, network,
+  // and connection status. you should retrieve values such as:
+  // - address → connected wallet address
+  // - isConnected → whether a wallet is currently connected
+  // - status → connection state string
   const { address, status } = useAppKitAccount();
   const { caipNetwork, chainId } = useAppKitNetwork();
 
+  // ② useBalance automatically fetches the wallet's native token balance
+  // on the currently connected chain.
+  //
+  // Wagmi expects addresses to be typed as `0x${string}`, which is why we
+  // cast the address to that type. If the wallet is not connected, the
+  // address should be undefined so the query does not run.
   const { data: balance } = useBalance({
     address: address as `0x${string}` | undefined,
   });
 
+  // Helper function to shorten long wallet addresses for display.
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
+  // Copy wallet address to clipboard.
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
   };
 
+  // Open the current wallet address on the network's block explorer.
   const openExplorer = () => {
     if (address && caipNetwork?.blockExplorers?.default?.url) {
       window.open(
@@ -34,6 +52,8 @@ export function WalletConnector() {
     }
   };
 
+  // ③ The component conditionally renders based on connection state.
+  // If the wallet is NOT connected, show a simple connect card.
   if (!isConnected) {
     return (
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
@@ -46,15 +66,18 @@ export function WalletConnector() {
             Connect with MetaMask or other wallets via WalletConnect
           </CardDescription>
         </CardHeader>
+
         <CardContent className="flex flex-col gap-4">
           <Button
-            //TODO: Implement the onClick handler to open the wallet connection modal using appKit's open function
+            // TODO: Implement the onClick handler to open the wallet
+            // connection modal using AppKit's `open()` function.
             size="lg"
             className="w-full gap-2"
           >
             <Wallet className="h-5 w-5" />
             Connect Wallet
           </Button>
+
           <p className="text-center text-xs text-muted-foreground">
             By connecting, you agree to the terms of service
           </p>
@@ -63,6 +86,7 @@ export function WalletConnector() {
     );
   }
 
+  // If the wallet IS connected, show the connected state UI.
   return (
     <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
@@ -71,6 +95,7 @@ export function WalletConnector() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
               <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
             </div>
+
             <div>
               <CardTitle className="text-lg">Connected</CardTitle>
               <CardDescription className="text-xs">
@@ -78,6 +103,7 @@ export function WalletConnector() {
               </CardDescription>
             </div>
           </div>
+
           <Button
             variant="outline"
             size="sm"
@@ -89,16 +115,19 @@ export function WalletConnector() {
           </Button>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-6">
         {/* Address Section */}
         <div className="rounded-lg bg-muted/50 p-4">
           <p className="mb-1 text-xs font-medium text-muted-foreground">
             Wallet Address
           </p>
+
           <div className="flex items-center justify-between">
             <code className="text-sm font-mono">
               {address ? truncateAddress(address) : ""}
             </code>
+
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -109,6 +138,7 @@ export function WalletConnector() {
               >
                 <Copy className="h-4 w-4" />
               </Button>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -127,6 +157,7 @@ export function WalletConnector() {
           <p className="mb-1 text-xs font-medium text-muted-foreground">
             Balance
           </p>
+
           <p className="text-2xl font-bold">
             {balance
               ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}`
@@ -144,6 +175,7 @@ export function WalletConnector() {
               {caipNetwork?.name || "Unknown"}
             </p>
           </div>
+
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="mb-1 text-xs font-medium text-muted-foreground">
               Chain ID
@@ -157,6 +189,7 @@ export function WalletConnector() {
           <p className="mb-1 text-xs font-medium text-muted-foreground">
             Connection Status
           </p>
+
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-500" />
             <p className="text-sm font-medium capitalize">{status}</p>
@@ -173,6 +206,7 @@ export function WalletConnector() {
             <Wallet className="h-4 w-4" />
             Account
           </Button>
+
           <Button
             variant="destructive"
             className="flex-1 gap-2"
