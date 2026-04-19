@@ -27,6 +27,7 @@ if (!projectId) {
 // TODO: Create an array of networks you want to support
 // Hint: Import networks from "@reown/appkit/networks"
 export const networks = [
+  mainnet, arbitrum, polygon, optimism, base
   // Add networks here (e.g., mainnet, arbitrum, polygon, optimism, base)
 ];
 
@@ -49,6 +50,12 @@ export const wagmiAdapter = new WagmiAdapter({
   //   [mainnet.id]: http(),
   //   ... add more for each network
   // },
+  storage: createStorage({
+    storage: cookieStorage,
+  }),
+  ssr: true,
+  projectId,
+  networks,
 });
 
 // Export the wagmi config for use in the provider

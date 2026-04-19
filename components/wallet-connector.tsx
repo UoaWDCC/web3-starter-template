@@ -69,10 +69,6 @@ export function WalletConnector() {
     }
   };
 
-  // STEP 4: Render different UI based on connection state
-  // When not connected: Show a "Connect Wallet" button
-  // When connected: Show wallet info (address, balance, network)
-
   if (!isConnected) {
     return (
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
@@ -86,11 +82,8 @@ export function WalletConnector() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {/* TODO: Add onClick handler to open the wallet modal */}
-          {/* Hint: Call open() from useAppKit */}
           <Button
             onClick={() => {
-              // TODO: Call open() to show the wallet connection modal
               open();
             }}
             size="lg"
@@ -119,7 +112,6 @@ export function WalletConnector() {
             <div>
               <CardTitle className="text-lg">Connected</CardTitle>
               <CardDescription className="text-xs">
-                {/* TODO: Display the network name */}
                 {caipNetwork?.name || "Unknown Network"}
               </CardDescription>
             </div>
@@ -146,7 +138,6 @@ export function WalletConnector() {
           </p>
           <div className="flex items-center justify-between">
             <code className="text-sm font-mono">
-              {/* TODO: Display truncated address */}
               {address ? truncateAddress(address) : ""}
             </code>
             <div className="flex gap-1">
@@ -178,8 +169,6 @@ export function WalletConnector() {
             Balance
           </p>
           <p className="text-2xl font-bold">
-            {/* TODO: Display formatted balance */}
-            {/* Hint: balance?.formatted and balance?.symbol */}
             {balance
               ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}`
               : "Loading..."}

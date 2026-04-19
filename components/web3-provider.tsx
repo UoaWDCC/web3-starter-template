@@ -41,20 +41,18 @@ const metadata = {
 // - adapters: Array containing wagmiAdapter
 // - projectId: Your WalletConnect project ID
 // - networks: The supported networks
-// - defaultNetwork: The default network (usually networks[0])
 // - metadata: The metadata object defined above
 // - features: Optional features like analytics
+createAppKit({
+  adapters: [wagmiAdapter],
+  projectId,
+  networks,
+  metadata,
+  features: {
+    analytics: false,
+  },
+});
 
-// createAppKit({
-//   adapters: ???,
-//   projectId: ???,
-//   networks: ???,
-//   defaultNetwork: ???,
-//   metadata: ???,
-//   features: {
-//     analytics: true,
-//   },
-// });
 
 // STEP 3: Create the Web3Provider component
 // This component wraps the app with WagmiProvider and QueryClientProvider
@@ -65,10 +63,10 @@ export function Web3Provider({
   children: ReactNode;
   cookies: string | null;
 }) {
-  // TODO: Parse the initial state from cookies for SSR support
-  // Hint: Use cookieToInitialState(wagmiAdapter.wagmiConfig as Config, cookies)
-  const initialState = undefined; // Replace with actual implementation
-
+  const initialState = cookieToInitialState(
+    wagmiAdapter.wagmiConfig as Config,
+    cookies
+  );
   // TODO: Return the providers wrapping the children
   // Structure:
   // <WagmiProvider config={...} initialState={...}>
@@ -76,11 +74,12 @@ export function Web3Provider({
   //     {children}
   //   </QueryClientProvider>
   // </WagmiProvider>
-  
+
   return (
-    <div>
-      {/* TODO: Replace this with proper providers */}
-      {children}
-    </div>
+    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
