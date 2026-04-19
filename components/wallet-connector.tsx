@@ -1,65 +1,30 @@
-/**
- * WORKSHOP: Wallet Connector Component
- * 
- * This component displays the wallet connection UI and wallet information.
- * It uses hooks from Reown AppKit and Wagmi to:
- * - Check if a wallet is connected
- * - Get the connected wallet address
- * - Get the wallet balance
- * - Get network information
- * - Open the connection/account modal
- * 
- * Key hooks:
- * - useAppKit(): Opens the wallet modal { open }
- * - useAppKitAccount(): Gets account info { address, isConnected, status }
- * - useAppKitNetwork(): Gets network info { caipNetwork, chainId }
- * - useBalance(): Gets the wallet balance (from wagmi)
- */
-
 "use client";
 
-// STEP 1: Import the necessary hooks
-// TODO: Import these hooks:
-// - useAppKit, useAppKitAccount, useAppKitNetwork from "@reown/appkit/react"
-// - useBalance from "wagmi"
-
+import { useAppKit, useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useBalance } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Copy, ExternalLink, LogOut, ChevronDown } from "lucide-react";
 
 export function WalletConnector() {
-  // STEP 2: Use the AppKit hooks to get wallet state
-  // TODO: Destructure the following from the hooks:
-  // const { open } = useAppKit();
-  // const { address, isConnected, status } = useAppKitAccount();
-  // const { caipNetwork, chainId } = useAppKitNetwork();
+  const { open } = useAppKit();
 
-  // Placeholder values - replace with actual hook values
-  const open = () => console.log("TODO: Implement useAppKit hook");
-  const address = undefined;
-  const isConnected = false;
-  const status = "disconnected";
-  const caipNetwork = undefined;
-  const chainId = undefined;
+  //TODO: Use the appropriate hooks from appKit to get the account, network, and connection status
+  const { address, status } = useAppKitAccount();
+  const { caipNetwork, chainId } = useAppKitNetwork();
 
-  // STEP 3: Use the useBalance hook from wagmi to get the wallet balance
-  // TODO: Call useBalance with the connected address
-  // const { data: balance } = useBalance({
-  //   address: address as `0x${string}` | undefined,
-  // });
-  const balance = undefined;
+  const { data: balance } = useBalance({
+    address: address as `0x${string}` | undefined,
+  });
 
-  // Helper function to truncate address for display
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  // Helper function to copy address to clipboard
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
   };
 
-  // Helper function to open block explorer
   const openExplorer = () => {
     if (address && caipNetwork?.blockExplorers?.default?.url) {
       window.open(
@@ -83,9 +48,7 @@ export function WalletConnector() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <Button
-            onClick={() => {
-              open();
-            }}
+            //TODO: Implement the onClick handler to open the wallet connection modal using appKit's open function
             size="lg"
             className="w-full gap-2"
           >
@@ -100,7 +63,6 @@ export function WalletConnector() {
     );
   }
 
-  // Connected state - show wallet information
   return (
     <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
@@ -119,10 +81,7 @@ export function WalletConnector() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              // TODO: Open the network switcher
-              // Hint: open({ view: "Networks" })
-            }}
+            onClick={() => open({ view: "Networks" })}
             className="gap-1"
           >
             Switch
@@ -209,10 +168,7 @@ export function WalletConnector() {
           <Button
             variant="outline"
             className="flex-1 gap-2"
-            onClick={() => {
-              // TODO: Open account view
-              // Hint: open({ view: "Account" })
-            }}
+            onClick={() => open({ view: "Account" })}
           >
             <Wallet className="h-4 w-4" />
             Account
@@ -220,10 +176,7 @@ export function WalletConnector() {
           <Button
             variant="destructive"
             className="flex-1 gap-2"
-            onClick={() => {
-              // TODO: Open account view to disconnect
-              // Hint: open({ view: "Account" })
-            }}
+            onClick={() => open({ view: "Account" })}
           >
             <LogOut className="h-4 w-4" />
             Disconnect
