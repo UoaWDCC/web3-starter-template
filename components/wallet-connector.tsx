@@ -1,5 +1,18 @@
 "use client";
 
+// ─────────────────────────────────────────────────────────────
+// wallet-connector.tsx — UI Layer
+//
+// This is the only file your users ever see. It consumes the
+// React context set up by web3-provider.tsx via hooks, and
+// renders one of two states:
+//   - Disconnected → a "Connect Wallet" card with a modal trigger
+//   - Connected    → a card showing address, balance, network, and actions
+//
+// This is also the best file to extend once the core flow is working —
+// add new UI sections, extra wallet info, or visual improvements here.
+// ─────────────────────────────────────────────────────────────
+
 import { useAppKit, useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Button } from "@/components/ui/button";
@@ -8,41 +21,35 @@ import { Wallet, Copy, ExternalLink, LogOut, ChevronDown } from "lucide-react";
 
 export function WalletConnector() {
 
-  // ① Pull in the AppKit hooks needed for wallet interaction.
-  // - useAppKit → provides functions like `open()` to control the wallet modal
-  // - useAppKitAccount → returns wallet address and connection state
-  // - useAppKitNetwork → returns the currently connected network
+  // useAppKit    → provides open(), which controls the wallet modal
+  // useAppKitAccount → returns the connected wallet address and connection state
+  // useAppKitNetwork → returns the currently active network
   const { open } = useAppKit();
 
-  // TODO: Use the appropriate hooks from AppKit to get the account, network,
-  // and connection status. you should retrieve values such as:
-  // - address → connected wallet address
-  // - isConnected → whether a wallet is currently connected
-  // - status → connection state string
-  const { address, status } = useAppKitAccount();
+  // TODO 6 ─ Destructure hooks from useAppKitAccount.
+  // It is currently missing the hooks for the wallet connector to properly work
+  // Add the necessary hooks
+  const { } = useAppKitAccount();
   const { caipNetwork, chainId } = useAppKitNetwork();
 
-  // ② useBalance automatically fetches the wallet's native token balance
-  // on the currently connected chain.
-  //
-  // Wagmi expects addresses to be typed as `0x${string}`, which is why we
-  // cast the address to that type. If the wallet is not connected, the
-  // address should be undefined so the query does not run.
+  // useBalance fetches the wallet's native token balance on the active chain.
+  // The address must be typed as `0x${string}` — wagmi's branded address type.
+  // Passing undefined when disconnected prevents the query from running.
   const { data: balance } = useBalance({
     address: address as `0x${string}` | undefined,
   });
 
-  // Helper function to shorten long wallet addresses for display.
+  // Shortens a full wallet address for display: 0x1234...abcd
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  // Copy wallet address to clipboard.
+  // Copies the wallet address to the user's clipboard.
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
   };
 
-  // Open the current wallet address on the network's block explorer.
+  // Opens the connected address on the network's block explorer.
   const openExplorer = () => {
     if (address && caipNetwork?.blockExplorers?.default?.url) {
       window.open(
@@ -52,8 +59,7 @@ export function WalletConnector() {
     }
   };
 
-  // ③ The component conditionally renders based on connection state.
-  // If the wallet is NOT connected, show a simple connect card.
+  // Disconnected state — render the connect card.
   if (!isConnected) {
     return (
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
@@ -69,8 +75,7 @@ export function WalletConnector() {
 
         <CardContent className="flex flex-col gap-4">
           <Button
-            // TODO: Implement the onClick handler to open the wallet
-            // connection modal using AppKit's `open()` function.
+            // TODO 7 ─ Add an onClick handler that opens the wallet modal.
             size="lg"
             className="w-full gap-2"
           >
@@ -86,7 +91,7 @@ export function WalletConnector() {
     );
   }
 
-  // If the wallet IS connected, show the connected state UI.
+  // Connected state — render the wallet info card.
   return (
     <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
@@ -184,7 +189,7 @@ export function WalletConnector() {
           </div>
         </div>
 
-        {/* Status */}
+        {/* Connection Status */}
         <div className="rounded-lg bg-muted/50 p-3">
           <p className="mb-1 text-xs font-medium text-muted-foreground">
             Connection Status

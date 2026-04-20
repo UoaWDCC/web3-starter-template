@@ -1,44 +1,56 @@
 import { cookieStorage, createStorage, http } from "@wagmi/core";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 
-// ① Import the networks you want to support.
-// Each import is just a typed configuration object — it does NOT create
-// a live RPC connection yet. Connections are configured later via transports.
-import {} from "@reown/appkit/networks";
+// ─────────────────────────────────────────────────────────────
+// wagmi-config.ts — Foundation Layer
+//
+// This file is the starting point for the entire wallet integration.
+// It defines:
+//   - which blockchain networks your app supports
+//   - how your app connects to those networks (via transports)
+//   - how wallet connection state is stored across page reloads
+//
+// Everything configured here is imported and used by web3-provider.tsx,
+// which sets up the React context that the rest of your app depends on.
+// ─────────────────────────────────────────────────────────────
 
-// ② Your WalletConnect Project ID.
-// This should be stored in `.env.local` as NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID.
-// It allows the WalletConnect modal to communicate with their relay servers.
+// TODO 1 ─ Import the networks you want to support.
+// Each named export is a typed config object —
+// it does NOT create a live connection. The actual connection is defined
+// later in the transports object below.
+import { } from "@reown/appkit/networks";
+
+// Your WalletConnect Project ID, read from .env.local.
+// This allows the WalletConnect modal to communicate with Reown's relay servers.
 export const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
-// Fail fast if the environment variable is missing.
 if (!projectId) {
   throw new Error("NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set");
 }
 
-// ③ The networks array controls which chains appear in the wallet modal.
-// Order matters — the first item will be the default selected chain.
+// TODO 1 (cont.) ─ Add the networks you imported above to this array.
+// Order matters — the first item will be the default selected chain
+// when a user opens the wallet modal.
 export const networks = [];
 
-// ④ WagmiAdapter wires Wagmi + WalletConnect together.
-// - ssr: true enables cookie-based state persistence to prevent
-//   hydration mismatches in server-rendered frameworks like Next.js.
-// - storage: uses cookies so wallet connection state can survive reloads.
-// - transports: defines the RPC provider for each supported chain.
+// WagmiAdapter wires Wagmi + WalletConnect together into a single adapter
+// that the providers in web3-provider.tsx can consume.
+//
+// - storage          persists wallet connection state in cookies across reloads
+// - transports       defines the RPC endpoint for each supported chain
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
   }),
-
   ssr: true,
   projectId,
   networks,
 
-  // - transports can be configured here if you want to use custom transports or add analytics
+  // TODO 2 (cont.) ─ Add one http() entry per network you added above.
   transports: {
   },
 });
 
-// ⑤ Export the Wagmi configuration so it can be used
-// by the WagmiProvider in your React app.
+// Export the Wagmi config so it can be consumed by WagmiProvider
+// in web3-provider.tsx.
 export const config = wagmiAdapter.wagmiConfig;
