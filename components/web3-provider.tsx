@@ -12,8 +12,6 @@
 // Any component that uses a wagmi or AppKit hook must be a descendant of Web3Provider.
 // ─────────────────────────────────────────────────────────────
 
-// createAppKit must be called ONCE at module level, NOT inside a React component.
-// If placed inside a component, it would re-initialise on every render and break wallet state.
 import { createAppKit } from "@reown/appkit/react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,8 +23,7 @@ import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 // about your supported chains and wallet adapter.
 
 // Create ONE QueryClient for the entire application.
-// React Query expects a single shared instance — recreating it inside a component
-// would reset all cached state on every render.
+// Fetches data for wagmi hooks, such as useBalance, and caches it according to React Query's rules.
 const queryClient = new QueryClient();
 
 if (!projectId) {
@@ -34,7 +31,8 @@ if (!projectId) {
 }
 
 // Metadata displayed inside the WalletConnect modal.
-// In production, `url` must match the domain registered in the Reown dashboard.
+// Metadata : structured information that describes, explains, locates, or manages information resources. 
+// In this case, it provides details about your app to users when they open the wallet connection modal.
 const metadata = {
   name: "Wallet Connector",
   description: "Connect your wallet using WalletConnect",
@@ -47,13 +45,7 @@ const metadata = {
 createAppKit({
 });
 
-// Web3Provider wraps the application with Wagmi and React Query providers.
-// The cookies prop comes from your Next.js root layout:
-//
-//   const cookies = headers().get("cookie")
-//
-// Passing cookies here allows Wagmi to rehydrate wallet connection state
-// so the app does not briefly flash "disconnected" after a page reload.
+// Web3Provider is the component that wraps your entire app and provides wallet connection context to all child components.
 export function Web3Provider({
   children,
   cookies,

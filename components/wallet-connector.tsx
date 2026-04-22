@@ -33,8 +33,6 @@ export function WalletConnector() {
   const { caipNetwork, chainId } = useAppKitNetwork();
 
   // useBalance fetches the wallet's native token balance on the active chain.
-  // The address must be typed as `0x${string}` — wagmi's branded address type.
-  // Passing undefined when disconnected prevents the query from running.
   const { data: balance } = useBalance({
     address: address as `0x${string}` | undefined,
   });
